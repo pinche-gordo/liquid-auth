@@ -63,17 +63,24 @@ async function bootstrap() {
     ttl: 20000,
   });
 
+  app.set('trust proxy', 1);
+
   const sessionHandler = session({
-    secret: config.get('session.secret'),
-    // TODO: optimize session
-    saveUninitialized: true,
-    resave: true,
-    cookie: {
-      httpOnly: true,
-      secure: config.get('session.secure'),
-    },
+    name: process.env.SESSION_COOKIE_NAME || 'connect.sid',
+    secret: process.env.SESSION_SECRET || 'change-me',
+    saveUninitialized: false,
+    resave: false,
     store,
+    cookie: {
+      domain: process.env.SESSION_COOKIE_DOMAIN || '.myglobal.site',
+      path: process.env.SESSION_COOKIE_PATH || '/',
+      sameSite: 'none',
+      secure: true,
+      httpOnly: true,
+    },
   });
+
+
   app.use(sessionHandler);
   const redisIoAdapter = new RedisIoAdapter(app, sessionHandler);
   await redisIoAdapter.connectToRedis(config);
