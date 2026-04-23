@@ -1,13 +1,11 @@
-# Overview
+# Vision
 
-The vision of this project is to attest to services based on Algorand specific private keys.
-It relates to [ARC-31](https://github.com/algorandfoundation/ARCs/pull/160) and poses the question:
+This repo copy is now a concise pointer.
 
-> Can we use FIDO2 to authenticate users to a blockchain?
+Canonical long-form vision note:
 
-This repository will serve as a reference implementation on the necessary endpoints to be
-compliant with `WebAuthn` and `FIDO2`.
+- `/home/jason/Nextcloud/obsidian/MYGLOBAL.site/MYGLOBAL.site/MYGLOBALplatform/shared/auth-vision.md`
 
-## Decisions
+Keep the product and strategic narrative in Obsidian.
 
-See all Decisions in [.decisions/README.md](.decisions/README.md)
+Keep technical architecture, published docs, and runnable service documentation in the repo.

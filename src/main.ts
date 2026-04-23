@@ -60,7 +60,7 @@ async function bootstrap() {
 
   const store = MongoStore.create({
     mongoUrl: uri,
-    ttl: 20000,
+    ttl: Math.max(1, Math.ceil((config.get<number>('session.maxAgeMs') || 10 * 60 * 1000) / 1000)),
   });
 
   const sessionHandler = session({
@@ -68,9 +68,11 @@ async function bootstrap() {
     // TODO: optimize session
     saveUninitialized: true,
     resave: true,
+    rolling: true,
     cookie: {
       httpOnly: true,
       secure: config.get('session.secure'),
+      sameSite: 'lax',
     },
     store,
   });
