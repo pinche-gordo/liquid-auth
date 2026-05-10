@@ -21,6 +21,18 @@ HOSTNAME=<DOMAIN_NAME> # Hostname of the service
 ORIGIN=https://<DOMAIN_NAME> # Origin of the service
 ```
 
+Session behavior:
+
+```sh
+SESSION_SECRET=<RANDOM_SECRET> # Secret used to sign express-session cookies
+SESSION_SECURE=true # Set true behind HTTPS
+SESSION_MAX_AGE_MS=600000 # Standard browser session window (10 minutes)
+MOBILE_LONG_SESSION_TTL_MS=15552000000 # Long mobile-session window (180 days)
+```
+
+`SESSION_MAX_AGE_MS` is the short-session baseline for desktop requests.
+`MOBILE_LONG_SESSION_TTL_MS` is used only for mobile requests, including requests forwarded by `app.myglobal.site` with `x-myglobal-session-mode: mobile_pwa`.
+
 If you are using a custom Android client, make sure to update the `SHA256` fingerprint.
 
 ```bash

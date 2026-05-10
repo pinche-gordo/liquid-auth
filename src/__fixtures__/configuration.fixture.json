@@ -6,7 +6,9 @@
   "origin": "http://catfish-pro-wolf.ngrok-free.app",
   "session": {
     "secure": false,
-    "secret": "secret"
+    "secret": "secret",
+    "maxAgeMs": 600000,
+    "mobileLongMaxAgeMs": 15552000000
   },
   "socket": {
     "host": "localhost",

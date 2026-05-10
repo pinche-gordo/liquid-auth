@@ -10,12 +10,14 @@ import { RedisIoAdapter } from './adapters/redis-io.adapter.js';
 // Session
 import session from 'express-session';
 import MongoStore from 'connect-mongo';
+import type { NextFunction, Request, Response } from 'express';
 
 // Sentry
 import * as Sentry from '@sentry/node';
 import { ProfilingIntegration } from '@sentry/profiling-node';
 import { SentryFilter } from './sentry.filter.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { resolveSessionMaxAgeMs } from './auth/session-policy.js';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -73,10 +75,26 @@ async function bootstrap() {
       httpOnly: true,
       secure: config.get('session.secure'),
       sameSite: 'lax',
+      maxAge: config.get<number>('session.maxAgeMs') || 10 * 60 * 1000,
     },
     store,
   });
   app.use(sessionHandler);
+  app.use((req: Request, _res: Response, next: NextFunction) => {
+    if (req.session?.cookie) {
+      const standardMaxAgeMs =
+        config.get<number>('session.maxAgeMs') || 10 * 60 * 1000;
+      const mobileLongMaxAgeMs =
+        config.get<number>('session.mobileLongMaxAgeMs') ||
+        180 * 24 * 60 * 60 * 1000;
+      req.session.cookie.maxAge = resolveSessionMaxAgeMs(
+        req,
+        standardMaxAgeMs,
+        mobileLongMaxAgeMs,
+      );
+    }
+    next();
+  });
   const redisIoAdapter = new RedisIoAdapter(app, sessionHandler);
   await redisIoAdapter.connectToRedis(config);
 

@@ -8,6 +8,11 @@ describe('configuration', () => {
       env: 'development',
       hostname: 'localhost',
       origin: 'http://localhost',
+      session: {
+        ...configFixture.session,
+        maxAgeMs: 10 * 60 * 1000,
+        mobileLongMaxAgeMs: 180 * 24 * 60 * 60 * 1000,
+      },
     });
     process.env.NODE_ENV = 'test';
   });

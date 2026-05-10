@@ -10,6 +10,9 @@ export default () => ({
     secure: process.env.SESSION_SECURE === 'true',
     secret: process.env.SESSION_SECRET || 'secret',
     maxAgeMs: parseInt(process.env.SESSION_MAX_AGE_MS || '', 10) || 10 * 60 * 1000,
+    mobileLongMaxAgeMs:
+      parseInt(process.env.MOBILE_LONG_SESSION_TTL_MS || '', 10) ||
+      180 * 24 * 60 * 60 * 1000,
   },
   socket: {
     host: process.env.REDIS_HOST || 'localhost',
