@@ -29,16 +29,16 @@ services:
       - "4040:4040"
   redis:
     image: redis
-    ports:
-      - "6379:6379"
+    expose:
+      - "6379"
   mongo:
     image: mongo:7.0
     environment:
       - MONGO_INITDB_DATABASE=${DB_NAME:-fido}
       - MONGO_INITDB_ROOT_USERNAME=${DB_USERNAME:-algorand}
       - MONGO_INITDB_ROOT_PASSWORD=${DB_PASSWORD:-algorand}
-    ports:
-      - "27017:27017"
+    expose:
+      - "27017"
     volumes:
       - mongo:/data/db
 volumes:
