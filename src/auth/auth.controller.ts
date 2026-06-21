@@ -6,11 +6,12 @@ import {
   InternalServerErrorException,
   NotFoundException,
   Param,
+  Post,
   Res,
   Session,
   UseGuards,
 } from '@nestjs/common';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service.js';
 import { AuthGuard } from './auth.guard.js';
 import {
@@ -26,6 +27,34 @@ import { User } from './auth.schema.js';
 @ApiTags('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  private destroySessionAndClearCookie(session: Record<string, any>, res: Response) {
+    const req = (res.req || null) as Request | null;
+    const secure =
+      req?.secure ||
+      req?.headers?.['x-forwarded-proto'] === 'https' ||
+      process.env.SESSION_SECURE === 'true';
+
+    return new Promise<{ success: true }>((resolve, reject) => {
+      session.destroy?.((err?: Error | null) => {
+        if (err) {
+          reject(
+            new InternalServerErrorException({
+              error: 'Failed to destroy session',
+            }),
+          );
+          return;
+        }
+        res.clearCookie('connect.sid', {
+          httpOnly: true,
+          sameSite: 'lax',
+          secure,
+          path: '/',
+        });
+        resolve({ success: true });
+      });
+    });
+  }
 
   /**
    * Display user keys
@@ -80,13 +109,23 @@ export class AuthController {
     }
   }
 
+  @Post('/logout')
+  @ApiOperation({ summary: 'Log Out API' })
+  logout(
+    @Session() session: Record<string, any>,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.destroySessionAndClearCookie(session, res);
+  }
+
   @Get('/logout')
-  @ApiOperation({ summary: 'Log Out' })
-  logout(@Session() session: Record<string, any>, @Res() res: Response) {
-    delete session.wallet;
-    delete session.active;
-    delete session.requestId;
-    res.redirect(302, '/');
+  @ApiOperation({ summary: 'Log Out Browser Route' })
+  async logoutBrowser(
+    @Session() session: Record<string, any>,
+    @Res() res: Response,
+  ) {
+    await this.destroySessionAndClearCookie(session, res);
+    return res.redirect(302, '/');
   }
   /**
    * Read Session

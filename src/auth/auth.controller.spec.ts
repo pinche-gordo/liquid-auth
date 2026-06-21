@@ -104,16 +104,72 @@ describe('AuthController', () => {
     });
   });
 
-  describe('Get /logout', () => {
-    it('(OK) should log the user out (removing their session)', async () => {
-      const session = new Session();
+  describe('Post /logout', () => {
+    it('(OK) should destroy the session and clear the cookie', async () => {
+      const session = Object.assign(new Session(), {
+        destroy: jest.fn((cb: (err?: Error | null) => void) => cb(null)),
+      });
       const res = {
-        status: jest.fn().mockReturnValue(200),
-        json: jest.fn().mockReturnValue('{ meh }'),
+        req: {
+          secure: true,
+          headers: {},
+        },
+        clearCookie: jest.fn(),
+      } as any as Response;
+
+      await expect(authController.logout(session, res)).resolves.toEqual({
+        success: true,
+      });
+      expect(session.destroy).toHaveBeenCalled();
+      expect(res.clearCookie).toHaveBeenCalledWith(
+        'connect.sid',
+        expect.objectContaining({
+          httpOnly: true,
+          sameSite: 'lax',
+          secure: true,
+          path: '/',
+        }),
+      );
+    });
+
+    it('(FAIL) should fail when session destroy errors', async () => {
+      const session = Object.assign(new Session(), {
+        destroy: jest.fn((cb: (err?: Error | null) => void) =>
+          cb(new Error('destroy failed')),
+        ),
+      });
+      const res = {
+        req: {
+          secure: false,
+          headers: {},
+        },
+        clearCookie: jest.fn(),
+      } as any as Response;
+
+      await expect(authController.logout(session, res)).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  describe('Get /logout', () => {
+    it('(OK) should destroy the session, clear the cookie, and redirect', async () => {
+      const session = Object.assign(new Session(), {
+        destroy: jest.fn((cb: (err?: Error | null) => void) => cb(null)),
+      });
+      const res = {
+        req: {
+          secure: true,
+          headers: {},
+        },
+        clearCookie: jest.fn(),
         redirect: jest.fn(),
       } as any as Response;
 
-      expect(authController.logout(session, res)).toBe(undefined);
+      await authController.logoutBrowser(session, res);
+      expect(session.destroy).toHaveBeenCalled();
+      expect(res.clearCookie).toHaveBeenCalled();
+      expect(res.redirect).toHaveBeenCalledWith(302, '/');
     });
   });
 
